@@ -5,7 +5,11 @@
 #include <time.h>
 #define RIGHE 20
 #define COLONNE 32
-#define FPS 1
+#define FPS (1000000/4) // 4fps 
+#define MELA 6000
+#define BORDO_LATERALE 5000
+#define BORDO_ORIZZONTALE 4000
+#define LEN_MAX ((RIGHE - 2) * (COLONNE - 2))
 void prepara_griglia(char griglia[RIGHE][COLONNE]);
 void printa_griglia(char griglia[RIGHE][COLONNE]);
 void pulisci_terminale();
@@ -14,6 +18,9 @@ void muovi_snake();
 void mossa_utente();
 void spawna_mela();
 void game_loop();
+int check_vittoria();
+void stampa_vittoria();
+void stampa_sconfitta();
 
 int snake_pos[RIGHE][COLONNE];
 int snake_x = 1;
@@ -51,11 +58,11 @@ void prepara_griglia(char griglia[RIGHE][COLONNE]){
             snake_pos[i][j] = 0;
             if(i == 0 || i == RIGHE - 1){
                 griglia[i][j] = '=';
-                snake_pos[i][j] = 4000;
+                snake_pos[i][j] = BORDO_ORIZZONTALE;
             }else{
                 if(j == 0 || j == COLONNE - 1){
                     griglia[i][j] = '|';
-                    snake_pos[i][j] = 5000;
+                    snake_pos[i][j] = BORDO_LATERALE;
                 }else{
                     griglia[i][j] = ' ';
                 }
@@ -87,13 +94,13 @@ void aggiorna_griglia(){
                 griglia[i][j] = '@';
                 }else if(snake_pos[i][j] == 2 || snake_pos[i][j] == 3){
                 griglia[i][j] = '#';
-                }else if(snake_pos[i][j] == 4000){
+                }else if(snake_pos[i][j] == BORDO_ORIZZONTALE){
                     griglia[i][j] = '=';
-                }else if(snake_pos[i][j] == 5000){
+                }else if(snake_pos[i][j] == BORDO_LATERALE){
                     griglia[i][j] = '|';
                 }else if(snake_pos[i][j] == 0){
                     griglia[i][j] = ' ';
-                }else if(snake_pos[i][j] == 6000){
+                }else if(snake_pos[i][j] == MELA){
                     griglia[i][j] = 'a';
                 }
         }
@@ -126,22 +133,22 @@ void muovi_snake(){
     }
 
     // controllo se lo snake mangia
-    if(snake_pos[testa_y][testa_x] == 6000){
+    if(snake_pos[testa_y][testa_x] == MELA){
         for(int i = 0;i<RIGHE;i++){
             for(int j = 0;j<COLONNE;j++){
-                if(snake_pos[i][j] != 4000 && snake_pos[i][j] != 0 && snake_pos[i][j] != 5000 && snake_pos[i][j] != 6000){
+                if(snake_pos[i][j] != BORDO_ORIZZONTALE && snake_pos[i][j] != 0 && snake_pos[i][j] != BORDO_LATERALE && snake_pos[i][j] != MELA){
                     snake_pos[i][j]++;
                 }
             }
         }
         snake_pos[testa_y][testa_x] = 1;
         mela_esiste = 0;
-    }else if(snake_pos[testa_y][testa_x] != 0 && snake_pos[testa_y][testa_x] != 6000){
+    }else if(snake_pos[testa_y][testa_x] != 0 && snake_pos[testa_y][testa_x] != MELA){
         game_running = 0;
     }else{
         for(int i = 0;i<RIGHE;i++){
             for(int j = 0;j<COLONNE;j++){
-                if(snake_pos[i][j] < 4000 && snake_pos[i][j] > 0){
+                if(snake_pos[i][j] < BORDO_ORIZZONTALE && snake_pos[i][j] > 0){
                 snake_pos[i][j]++;
                 }
             }
@@ -152,7 +159,7 @@ void muovi_snake(){
         int temp = 0;
         for(int i = 0;i<RIGHE;i++){
             for(int j = 0;j<COLONNE;j++){
-                if(snake_pos[i][j] < 4000 && snake_pos[i][j] > 0){
+                if(snake_pos[i][j] < BORDO_ORIZZONTALE && snake_pos[i][j] > 0){
                     if(snake_pos[i][j]>temp){
                         temp = snake_pos[i][j];
                         coda_x = j;
@@ -210,7 +217,7 @@ void spawna_mela(){
     int mela_x = rand() % (COLONNE-2) + 1;
     int mela_y = rand() % (RIGHE - 2) + 1;
         if(snake_pos[mela_y][mela_x] == 0){
-            snake_pos[mela_y][mela_x] = 6000;
+            snake_pos[mela_y][mela_x] = MELA;
             mela_esiste = 1;
         }
     }
@@ -230,7 +237,60 @@ void game_loop(){
         aggiorna_griglia();
         printa_griglia(griglia);
         mossa_utente();
-        sleep(FPS);
-
+        usleep(FPS);
     }
+    if(check_vittoria()){
+        pulisci_terminale();
+        stampa_vittoria();
+    }else{
+        pulisci_terminale();
+        stampa_sconfitta();
+    }
+}
+
+int check_vittoria(){
+    if(len == LEN_MAX){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+void stampa_vittoria(){
+    printf(
+    "\n"
+    "██╗   ██╗ ██████╗ ██╗   ██╗\n"
+    "╚██╗ ██╔╝██╔═══██╗██║   ██║\n"
+    " ╚████╔╝ ██║   ██║██║   ██║\n"
+    "  ╚██╔╝  ██║   ██║██║   ██║\n"
+    "   ██║   ╚██████╔╝╚██████╔╝\n"
+    "   ╚═╝    ╚═════╝  ╚═════╝ \n"
+    "\n"
+    "██╗    ██╗ ██████╗ ███╗   ██╗\n"
+    "██║    ██║██╔═══██╗████╗  ██║\n"
+    "██║ █╗ ██║██║   ██║██╔██╗ ██║\n"
+    "██║███╗██║██║   ██║██║╚██╗██║\n"
+    "╚███╔███╔╝╚██████╔╝██║ ╚████║\n"
+    " ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═══╝\n"
+);
+}
+
+void stampa_sconfitta(){
+    printf(
+    "\n"
+    "██╗   ██╗ ██████╗ ██╗   ██╗\n"
+    "╚██╗ ██╔╝██╔═══██╗██║   ██║\n"
+    " ╚████╔╝ ██║   ██║██║   ██║\n"
+    "  ╚██╔╝  ██║   ██║██║   ██║\n"
+    "   ██║   ╚██████╔╝╚██████╔╝\n"
+    "   ╚═╝    ╚═════╝  ╚═════╝ \n"
+    "\n"
+    "██╗      ██████╗ ███████╗████████╗\n"
+    "██║     ██╔═══██╗██╔════╝╚══██╔══╝\n"
+    "██║     ██║   ██║███████╗   ██║   \n"
+    "██║     ██║   ██║╚════██║   ██║   \n"
+    "███████╗╚██████╔╝███████║   ██║   \n"
+    "╚══════╝ ╚═════╝ ╚══════╝   ╚═╝   \n"
+);
+
 }

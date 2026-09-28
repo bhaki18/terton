@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <ncurses.h>
+#include <stdlib.h>
+#include <time.h>
 #define RIGHE 20
 #define COLONNE 32
 #define FPS 1
@@ -22,6 +24,9 @@ int input_recived = 0;
 int mela_esiste = 0;
 
 char griglia[RIGHE][COLONNE];
+
+
+
 
 
 // legenda dei numeri di snake_pos:
@@ -200,16 +205,13 @@ void mossa_utente(){
 }
 
 void spawna_mela(){
+    srand(time(NULL));
     while(!mela_esiste){
-        for(int i = 0;i<RIGHE;i++){
-            for(int j = 0;j<COLONNE;j++ ){
-                if(snake_pos[i][j] == 0 && !mela_esiste){
-                    snake_pos[i][j] = 6000;
-                    mela_esiste = 1;
-                    break;
-                    
-                }
-            }
+    int mela_x = rand() % (COLONNE-2) + 1;
+    int mela_y = rand() % (RIGHE - 2) + 1;
+        if(snake_pos[mela_y][mela_x] == 0){
+            snake_pos[mela_y][mela_x] = 6000;
+            mela_esiste = 1;
         }
     }
 }
